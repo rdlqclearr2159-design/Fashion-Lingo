@@ -105,7 +105,6 @@ body::before{
   </div>
   <p class="auth-sub">Học từ vựng tiếng Anh mỗi ngày 🚀</p>
 
-  <!-- TABS -->
   <div class="tabs">
     <button class="tab active" id="tabLogin"    onclick="switchTab('login')">Đăng nhập</button>
     <button class="tab"        id="tabRegister" onclick="switchTab('register')">Đăng ký</button>
@@ -113,7 +112,6 @@ body::before{
 
   <div class="err-msg" id="errMsg"></div>
 
-  <!-- LOGIN FORM -->
   <form id="loginForm" onsubmit="event.preventDefault();doLogin()">
     <div class="form-group">
       <label class="form-label">Email</label>
@@ -136,7 +134,6 @@ body::before{
     <button class="submit-btn" type="submit">🔓 Đăng nhập</button>
   </form>
 
-  <!-- REGISTER FORM -->
   <form id="registerForm" style="display:none" onsubmit="event.preventDefault();doRegister()">
     <div class="form-group">
       <label class="form-label">Tên hiển thị</label>
@@ -170,12 +167,6 @@ body::before{
 <div class="toast" id="toast"></div>
 
 <script>
-// ============================================================
-// NOTE: Đây là hệ thống đăng nhập GIẢ LẬP dùng localStorage.
-// Mật khẩu KHÔNG được mã hóa — chỉ phù hợp cho demo/thuyết trình,
-// KHÔNG dùng cho sản phẩm thực tế có dữ liệu nhạy cảm.
-// ============================================================
-
 function switchTab(tab) {
   document.getElementById('tabLogin').classList.toggle('active', tab==='login');
   document.getElementById('tabRegister').classList.toggle('active', tab==='register');
@@ -214,10 +205,11 @@ function doRegister() {
     return;
   }
 
-  users.push({ name, email, pass, avatar: '🦊', joinedAt: new Date().toISOString() });
+  const defaultAvatar = '🦊';
+  users.push({ name, email, pass, avatar: defaultAvatar, joinedAt: new Date().toISOString() });
   localStorage.setItem('fe_users', JSON.stringify(users));
 
-  loginSession(email, name);
+  loginSession(email, name, defaultAvatar, true);
   showToast('🎉 Tạo tài khoản thành công!', 'success');
   setTimeout(() => window.location.href = 'index.html', 800);
 }
@@ -239,7 +231,7 @@ function doLogin() {
   }
 
   const remember = document.getElementById('rememberMe').checked;
-  loginSession(email, user.name, remember);
+  loginSession(email, user.name, user.avatar || '🦊', remember);
   showToast(`👋 Chào mừng trở lại, ${user.name}!`, 'success');
   setTimeout(() => window.location.href = 'index.html', 700);
 }
@@ -248,8 +240,7 @@ function doLogin() {
 // GUEST MODE
 // ============================================================
 function continueAsGuest() {
-  loginSession('guest@flasheng.app', 'Khách', false);
-  // Đảm bảo có user record để các trang khác hoạt động bình thường
+  loginSession('guest@flasheng.app', 'Khách', '👋', false);
   const users = JSON.parse(localStorage.getItem('fe_users') || '[]');
   if (!users.find(u => u.email === 'guest@flasheng.app')) {
     users.push({ name:'Khách', email:'guest@flasheng.app', pass:'', avatar:'👋', joinedAt: new Date().toISOString() });
@@ -262,8 +253,8 @@ function continueAsGuest() {
 // ============================================================
 // SESSION HELPER
 // ============================================================
-function loginSession(email, name, remember = true) {
-  const session = { email, name, loggedAt: Date.now() };
+function loginSession(email, name, avatar, remember = true) {
+  const session = { email, name, avatar, loggedAt: Date.now() };
   localStorage.setItem('fe_current_user', JSON.stringify(session));
   localStorage.setItem('fe_username', name);
   if (!localStorage.getItem('fe_join')) localStorage.setItem('fe_join', new Date().toISOString());
@@ -286,23 +277,9 @@ function showToast(msg, type) {
 (function() {
   const session = JSON.parse(localStorage.getItem('fe_current_user') || 'null');
   if (session) {
-    // Đã đăng nhập rồi -> về trang chủ luôn
     window.location.href = 'index.html';
   }
 })();
-</script>
-
-<script src="audio_map.js"></script>
-<script>
-window.playWordAudio=function(word){
- try{
-  const k=(word||'').toString().trim().toLowerCase();
-  if(window.AUDIO_MAP && AUDIO_MAP[k]){
-    const a=new Audio(AUDIO_MAP[k]); a.play(); return true;
-  }
- }catch(e){}
- return false;
-};
 </script>
 </body>
 </html>
